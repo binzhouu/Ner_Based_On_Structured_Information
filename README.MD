@@ -1,8 +1,8 @@
 ## 系统架构
-![system structure](Png/system structure.png)
+![system structure](Png/system_structure.png)
 
 ## 模型结构
-![model structure](Png/model structure.jpg)
+![model structure](Png/model_structure.jpg)
 
 ### Padding策略
 ![padding strategy](Png/padding.png)
@@ -19,7 +19,7 @@ Batch = B，所有句子中，最大句子长度为m，最大词的长度为n，
 
 ## 特征处理
 说明：代码中我没有将特征处理的部分放出来，dataset中的特征已是处理好特征的数据集，如
-"|河南省 [Lexi]1 B-LOC|"，中间的"1"代表的就是某一特征类型，下面是处理思路：  
+"|  河南省 [Lexi]1 B-LOC  |"，中间的"1"代表的就是某一特征类型，下面是处理思路：  
 - 构建辞典，以常见的Ner类别距离，构建[人名]、[地名]、[机构名]、[公司名]；  
 - 对原有句子做切词处理，对切词后的word做字典树搜索；  
 - 搜索结果，"1"表示存在，"0"表示不存在，会得到一组结构特征，如word:'周杰伦'的搜索结果是[1,0,0,0]，我
