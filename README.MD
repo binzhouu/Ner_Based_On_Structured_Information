@@ -50,7 +50,7 @@ Batch = B，所有句子中，最大句子长度为m，最大词的长度为n，
 
 ## 配置层
 - 路径：pattern/  
-说明：规则模版配置及应用  
+说明：规则模版及badcase的配置及应用  
   
 - 路径：phone/  
 说明：专门抓取电话号码的配置及应用  
@@ -60,3 +60,9 @@ Batch = B，所有句子中，最大句子长度为m，最大词的长度为n，
 - 参数配置：model/cnn_lstm_crf.py
 
 ## 模型推理：
+entity_parse.py  
+实现顺序：  
+- phone_num识别;  
+- badcase识别;  
+- pattern识别;  
+- 模型识别;  
