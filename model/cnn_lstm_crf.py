@@ -73,13 +73,13 @@ class CnnLstmCrf(nn.Module):
 
         self.crf = CRF(data.label_alphabet_size, config.gpu)
 
-    # char_inputs:(batch_size * max_seq_len, max_char_len)
+    # batch_char:(batch_size * max_seq_len, max_char_len)
     def calculate_loss(self, batch_word, batch_features, batch_wordlen, batch_char, batch_charlen, batch_charrecover,
                        batch_label, mask):
         char_batch_size = batch_char.size(0)
         char_embeds = self.char_embeddings(batch_char)  # (530, 10, 300)  # 10表示最大字符长度
         char_embeds = self.char_drop(char_embeds)  # (530, 10, 300)
-        char_embeds = char_embeds.transpose(1, 2)  # 将max_length和embedding_dim转置 (batch*max_char_len, dim, max_length)
+        char_embeds = char_embeds.transpose(1, 2)  # (530,300,10) (batch*max_seq_len, dim, 最大字符长度)
         char_cnn_out = self.char_cnn(char_embeds)  # (530,50,10)
         char_cnn_out = torch.max_pool1d(char_cnn_out, kernel_size=char_cnn_out.size(2)).view(char_batch_size, -1)  # (530, 50) 在词的维度做池化
         char_cnn_out = char_cnn_out[batch_charrecover]  # 还原到word降序的时刻

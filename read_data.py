@@ -23,8 +23,8 @@ test_file = os.path.join(head_path, 'dataset/debug/test_lexi.txt')
 
 alphabet_file = os.path.join(head_path, 'dataset/alphabet.dset')
 
-bert_vocab_file = os.path.join(head_path, 'chinese_wwm_pytorch/vocab.txt')
-vocab = load_vocab(bert_vocab_file)
+# bert_vocab_file = os.path.join(head_path, 'chinese_wwm_pytorch/vocab.txt')
+# vocab = load_vocab(bert_vocab_file)
 
 
 class Data(object):
