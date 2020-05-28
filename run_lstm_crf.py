@@ -4,6 +4,7 @@ Author: bin zhou
 Date: 2020-05-28
 """
 import os
+import logging
 import logging.config
 import yaml
 import torch
@@ -15,7 +16,7 @@ from read_data import Data
 from utils.functions import batchify_sequence_labeling_with_label, predict_check, evalute_sequence_labeling
 
 logger = logging.getLogger(__name__)
-logging.config.fileConfig(os.path.join(ROOT_PATH, 'logging.conf'))
+logging.config.fileConfig(os.path.join(ROOT_PATH, 'logging.conf'), disable_existing_loggers=False)
 
 yml_path = os.path.join(ROOT_PATH, 'conf/model.yaml')
 

@@ -13,13 +13,13 @@ config = CnnLstmConfig()
 
 head_path, _ = os.path.split(os.path.abspath(__file__))
 
-train_file = os.path.join(head_path, 'dataset/train_lexi.txt')
-dev_file = os.path.join(head_path, 'dataset/dev_lexi.txt')
-test_file = os.path.join(head_path, 'dataset/test_lexi.txt')
+# train_file = os.path.join(head_path, 'dataset/train_lexi.txt')
+# dev_file = os.path.join(head_path, 'dataset/dev_lexi.txt')
+# test_file = os.path.join(head_path, 'dataset/test_lexi.txt')
 
-# train_file = os.path.join(head_path, 'dataset/debug/train_lexi.txt')
-# dev_file = os.path.join(head_path, 'dataset/debug/dev_lexi.txt')
-# test_file = os.path.join(head_path, 'dataset/debug/test_lexi.txt')
+train_file = os.path.join(head_path, 'dataset/debug/train_lexi.txt')
+dev_file = os.path.join(head_path, 'dataset/debug/dev_lexi.txt')
+test_file = os.path.join(head_path, 'dataset/debug/test_lexi.txt')
 
 alphabet_file = os.path.join(head_path, 'dataset/alphabet.dset')
 
