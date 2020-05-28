@@ -29,6 +29,8 @@ def use_delete(if_del=True):
 				model_path = os.path.join(ROOT_PATH, 'saved_models/bilstm_crf')
 				model_files = os.listdir(model_path)
 				for i in model_files:
+					if i.startswith('.'):
+						continue
 					name = os.path.join(model_path, i)
 					os.remove(name)
 			else:
