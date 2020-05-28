@@ -7,7 +7,9 @@ import numpy as np
 import torch
 import time
 from model.bert_cnn_lstm_crf import BertCLCConfig
+import logging
 
+logger = logging.getLogger(__name__)
 config = BertCLCConfig()
 
 
@@ -168,6 +170,53 @@ def evaluate(data, model, name, nbest=None):
     speed = len(instances) / decode_time
     acc, p, r, f = get_ner_fmeasure(gold_results, pred_results)
     return speed, acc, p, r, f, pred_results, pred_scores
+
+
+def evalute_sequence_labeling(data, model, name, config):
+    assert name in ['dev', 'test']
+    if name == 'dev':
+        instances = data.dev_ids
+    elif name == 'test':
+        instances = data.test_ids
+    else:
+        instances = ''
+
+    right_token = 0
+    whole_token = 0
+    nbest_pred_results = []
+    pred_scores = []
+    pred_results = []
+    gold_results = []
+
+    model.eval()
+    batch_size = config['batch_size']
+    # start_time = time.time()
+    train_num = len(instances)
+
+    total_batch = train_num // batch_size + 1
+    total_loss = 0
+
+    for batch_id in range(total_batch):
+        start = batch_id * batch_size
+        end = (batch_id + 1) * batch_size
+        if end > train_num:
+            end = train_num
+        instance = instances[start:end]
+        if not instance:
+            continue
+
+        batch_word, batch_features, batch_wordlen, batch_wordrecover, batch_char, batch_charlen, batch_charrecover, \
+            batch_label, mask = batchify_sequence_labeling_with_label(instance, config['gpu'], if_train=False)
+        tag_seq = model(batch_word, batch_wordlen, batch_wordrecover, mask)
+
+        pred_label, gold_label = recover_label(tag_seq, batch_label, mask, data.label_alphabet, batch_wordrecover)
+        pred_results += pred_label
+        gold_results += gold_label
+    logger.info('%s pre_results: %s' % (name, len(pred_results)))
+    logger.info('%s gold_results: %s' % (name, len(gold_results)))
+    acc, p, r, f = get_ner_fmeasure(gold_results, pred_results)
+
+    return total_loss, acc, p, r, f, pred_results, pred_scores
 
 
 def recover_label(pred_variable, gold_variable, mask_variable, label_alphabet, word_recover):

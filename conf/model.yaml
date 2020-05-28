@@ -1,0 +1,19 @@
+require_improvement: 10
+batch_size: 64
+
+lr: 0.0003
+lr_decay: 0.05
+l2: 0.00000001
+momentum: 0
+epoch: 1000
+dropout: 0.5
+random_embedding: True
+
+#char_emb_dim: 300
+word_emb_dim: 300
+
+# model_num对应不同的模型结构
+model_num: 1
+model:
+  1: {encoder_type: "bilstm_crf", hidden_dim: 200, num_layers: 1, batch_first: True, bidirectional: True, feature_emb_dim: 100,
+        model_path: "saved_models/bilstm_crf/bilstm_crf"}
