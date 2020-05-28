@@ -69,8 +69,14 @@ Batch = B，所有句子中，最大句子长度为m，最大词的长度为n，
 说明：专门抓取电话号码的配置及应用  
 
 ## 模型训练：
-- 路径：main.py  
+- 主程序：main.py  
 - 参数配置：model/cnn_lstm_crf.py
+
+### 模型对比：  
+增加一个词级别的lstm + crf 的常规模型，做对比试验  
+- 主程序：run_lstm_crf.py  
+- 参数配置：conf/model.yaml  
+- 存储路径：saved_models/bilstm_crf  
 
 ## 模型推理：
 entity_parse.py  
