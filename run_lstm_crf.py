@@ -59,6 +59,7 @@ class Run(object):
 		if self.configs['gpu']:
 			model = model.cuda()
 		best_dev = -10
+		last_improved = 0
 
 		for idx in range(self.configs['epoch']):
 			epoch_start = time.time()
@@ -104,6 +105,9 @@ class Run(object):
 					if sample_loss > 1e8 or str(sample_loss) == "nan":
 						print("ERROR: LOSS EXPLOSION (>1e8) ! PLEASE SET PROPER PARAMETERS AND STRUCTURE! EXIT....")
 						exit(1)
+					# 每次sample_loss要清零
+					sample_loss = 0
+
 				loss.backward()
 				optimizer.step()
 				model.zero_grad()
@@ -117,7 +121,7 @@ class Run(object):
 			logger.info("Epoch: %s training finished. Time: %.2fs, speed: %.2fst/s,  total loss: %s" % (
 				idx, epoch_cost, train_num / epoch_cost, total_loss))
 
-			logger.info("Epoch: %s, Total loss: %s" % (idx, total_loss))
+			# logger.info("Epoch: %s, Total loss: %s" % (idx, total_loss))
 			speed, acc, p, r, f, _, _ = evalute_sequence_labeling(data, model, "dev", self.configs)
 			dev_finish = time.time()
 			dev_cost = dev_finish - epoch_finish
@@ -130,12 +134,19 @@ class Run(object):
 				model_name = self.configs['model_path'] + '.' + str(idx) + '.model'
 				torch.save(model.state_dict(), model_name)
 				best_dev = current_score
+				last_improved = idx
 
 			speed, acc, p, r, f, _, _ = evalute_sequence_labeling(data, model, "test", self.configs)
 			test_finish = time.time()
 			test_cost = test_finish - dev_finish
 			logger.info("Epoch: %s, Loss: %s, Test: time: %.2fs, speed: %.2fst/s; acc: %.4f, p: %.4f, r: %.4f, f: %.4f" % (
 					idx, total_loss, test_cost, speed, acc, p, r, f))
+
+			# add early-stopping
+			if idx - last_improved > self.configs['require_improvement']:
+				logger.info('No optimization for %s epoch, auto-stopping' % self.configs['require_improvement'])
+				break
+
 
 	@staticmethod
 	def lr_decay(optimzer, epoch, decay_rate, init_lr):
