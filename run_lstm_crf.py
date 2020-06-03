@@ -147,7 +147,6 @@ class Run(object):
 				logger.info('No optimization for %s epoch, auto-stopping' % self.configs['require_improvement'])
 				break
 
-
 	@staticmethod
 	def lr_decay(optimzer, epoch, decay_rate, init_lr):
 		lr = init_lr / (1 + decay_rate * epoch)

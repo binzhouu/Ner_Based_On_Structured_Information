@@ -21,6 +21,43 @@ def lr_decay(optimizer, epoch, decay_rate, init_lr):
     return optimizer
 
 
+def batchify_sequence_labeling_charlevel(input_batch_list, gpu, if_train=True):
+    batch_size = len(input_batch_list)
+    chars = [sent[0] for sent in input_batch_list]
+    labels = [sent[-1] for sent in input_batch_list]
+
+    char_seq_lengths = torch.tensor(list(map(len, chars)), dtype=torch.long)
+    max_seq_len = char_seq_lengths.max().item()
+    # padding前准备
+    char_seq_tensor = torch.zeros((batch_size, max_seq_len), requires_grad=if_train).long()
+    label_seq_tensor = torch.zeros((batch_size, max_seq_len), requires_grad=if_train).long()
+
+    mask = torch.zeros((batch_size, max_seq_len), requires_grad=if_train).byte()
+    # padding，先把tensor全部zeros，再根据len填充
+    for idx, (seq, label, seq_len) in enumerate(zip(chars, labels, char_seq_lengths)):
+        seqlen = seq_len.item()
+        char_seq_tensor[idx, :seqlen] = torch.tensor(seq, dtype=torch.long)
+        label_seq_tensor[idx, :seqlen] = torch.tensor(label, dtype=torch.long)
+        mask[idx, :seqlen] = torch.tensor([1] * seqlen, dtype=torch.long)
+
+    # 将样本按句子的长度(words的len降序)
+    char_seq_lengths, char_perm_idx = char_seq_lengths.sort(0, descending=True)
+    char_seq_tensor = char_seq_tensor[char_perm_idx]  # 按降序重排batch中的句子
+    label_seq_tensor = label_seq_tensor[char_perm_idx]
+    mask = mask[char_perm_idx]
+
+    # 还原顺序的index:
+    _, char_seq_recover = char_perm_idx.sort(0, descending=False)
+
+    if gpu:
+        char_seq_tensor = char_seq_tensor.cuda()
+        char_seq_recover = char_seq_recover.cuda()
+        label_seq_tensor = label_seq_tensor.cuda()
+        mask = mask.cuda()
+
+    return None, None, None, None, char_seq_tensor, char_seq_lengths, char_seq_recover, label_seq_tensor, mask
+
+
 def batchify_sequence_labeling_with_label(input_batch_list, gpu, if_train=True):
     batch_size = len(input_batch_list)
     words = [sent[1] for sent in input_batch_list]
@@ -170,6 +207,53 @@ def evaluate(data, model, name, nbest=None):
     speed = len(instances) / decode_time
     acc, p, r, f = get_ner_fmeasure(gold_results, pred_results)
     return speed, acc, p, r, f, pred_results, pred_scores
+
+
+def evalute_sequence_labeling_charlevel(data, model, name, config):
+    assert name in ['dev', 'test']
+    if name == 'dev':
+        instances = data.dev_ids
+    elif name == 'test':
+        instances = data.test_ids
+    else:
+        instances = ''
+
+    right_token = 0
+    whole_token = 0
+    nbest_pred_results = []
+    pred_scores = []
+    pred_results = []
+    gold_results = []
+
+    model.eval()
+    batch_size = config['batch_size']
+    # start_time = time.time()
+    train_num = len(instances)
+
+    total_batch = train_num // batch_size + 1
+    total_loss = 0
+
+    for batch_id in range(total_batch):
+        start = batch_id * batch_size
+        end = (batch_id + 1) * batch_size
+        if end > train_num:
+            end = train_num
+        instance = instances[start:end]
+        if not instance:
+            continue
+
+        _, _, _, _, batch_char, batch_charlen, batch_charrecover, \
+            batch_label, mask = batchify_sequence_labeling_charlevel(instance, config['gpu'], if_train=False)
+        tag_seq = model(batch_char, batch_charlen, batch_charrecover, mask)
+
+        pred_label, gold_label = recover_label(tag_seq, batch_label, mask, data.label_alphabet, batch_charrecover)
+        pred_results += pred_label
+        gold_results += gold_label
+    logger.info('%s pre_results: %s' % (name, len(pred_results)))
+    logger.info('%s gold_results: %s' % (name, len(gold_results)))
+    acc, p, r, f = get_ner_fmeasure(gold_results, pred_results)
+
+    return total_loss, acc, p, r, f, pred_results, pred_scores
 
 
 def evalute_sequence_labeling(data, model, name, config):
