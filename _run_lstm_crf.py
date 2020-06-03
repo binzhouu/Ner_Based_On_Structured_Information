@@ -74,7 +74,7 @@ class Run(object):
 			total_loss = 0
 			right_token = 0
 			whole_token = 0
-			logger.info('first input word list: %s, %s' % (data.train_texts[0][1], data.train_ids[0][1]))
+			logger.info('first input word list: %s, %s' % (data.train_texts[0][0], data.train_ids[0][0]))
 
 			model.train()
 			model.zero_grad()
